@@ -10,18 +10,20 @@ from git_template import template
 
 def handle_index(request):
     if is_authenticate(request) == -1:
-        auth = False
+        f = open(settings.TEMPLATES_DIR + 'index.html')
+        read = f.read()
+        html = template.Template(read).render(auth = False)
     else:
-        auth = True
-    f = open(settings.TEMPLATES_DIR + 'index.html')
-    read = f.read()
-    html = template.Template(read).render(auth = auth)
+        f = open(settings.TEMPLATES_DIR + 'profile.html')
+        read = f.read()
+        data = get_userdata(request)
+        html = template.Template(read).render(name = data[0][1], lname = data[0][2], username  = data[0][3])
     request.send_response(HTTPStatus.OK)
     request.send_header('Content-Type', 'text/html')
     request.end_headers()
     request.wfile.write(str.encode(html))
-    a = DataAccess.DataAccessor()
-    a.selectExample()
+    # a = DataAccess.DataAccessor()
+    # a.selectExample()
     return request
 
 
@@ -190,6 +192,11 @@ def get_id_by_username(username):
         return -1
 
 def check_user(username, password):
+    """
+    :param username:
+    :param password:
+    :return: user_id
+    """
     a = DataAccess.DataAccessor()
     rows = a.select("select * from users where username='%s' and password='%s';" % (username, password))
     if len(rows)>0:
@@ -211,4 +218,7 @@ def authorize(username):
     a.insert("sessions", id_user = get_id_by_username(username), session = session)
     return session
 
+def get_userdata(request):
+    a = DataAccess.DataAccessor()
+    return a.select("select * from users where id = '%s'" % is_authenticate(request))
 
