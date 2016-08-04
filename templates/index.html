@@ -6,6 +6,12 @@
     <!--<link rel="stylesheet" href="css/style.css">-->
 </head>
 <body>
-    <h1>{content}</h1>
+    <h1>{{ auth }}</h1>
+    {% if auth != True %}
+        <p><a href="login/">Войти</a></p>
+        <p><a href="register/">Зарегся</a></p>
+    {% else %}
+        <p><a href="logout/">Выйти</a></p>
+    {% endif %}
 </body>
 </html>

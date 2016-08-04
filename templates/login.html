@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<p><a href="/">На главную</a></p>
+<h1>{{ msg}}</h1>
+{% if auth != True %}
+    <form action="" method="POST">
+        <p>Username <input type="text" name="username"></p>
+        <p>Password <input type="password" name="password"></p>
+        <p><input type="submit"></p>
+    </form>
+{% endif %}
+</body>
+</html>

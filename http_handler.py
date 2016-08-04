@@ -1,3 +1,5 @@
+import cgi
+import logging
 from http.server import BaseHTTPRequestHandler
 
 from routes import routes

@@ -40,4 +40,4 @@ class Route(object):
         return self._handler
     
     def check_method_and_path(self, method, path):
-        return self._method == method and self._path == path
+        return self._method == method and self._path == path.split('?')[0]
