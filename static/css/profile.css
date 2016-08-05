@@ -1,0 +1,23 @@
+.content{
+
+}
+.userblock{
+    float: left;
+    display: inline-block;
+    width: 20%
+}
+.maincontent{
+    float: left;
+    display: inline-block;
+    width: 70%
+}
+.clearfix:after {
+     content: ".";
+     display: block;
+     height: 0;
+     clear: both;
+     visibility: hidden;
+}
+.clearfix {
+    display: inline-block;
+}

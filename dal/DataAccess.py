@@ -17,7 +17,41 @@ class DataAccessor():
         except:
             print('unable to connect DB')
 
+    def select(self, query):
+        self.cur.execute(query)
+        return self.cur.fetchall()
 
+    def update(self, query):
+        self.cur.execute(query)
+        self.conn.commit()
+
+    def insert(self, table, **kwargs):
+        query = "INSERT INTO %s" % table
+        variable = ""
+        values = ""
+        for i in kwargs:
+            variable += (" " + str(i) + " , ")
+            values += ("'" + str(kwargs[i]) + "', ")
+        query = ("%s (%s) values (%s)" % (query, variable[:-2], values[:-2]))
+        self.cur.execute(query)
+        self.conn.commit()
+
+    def is_exist_user(self, username):
+        self.cur.execute("select * FROM users where username = '%s';" % username.lower())
+        rows = self.cur.fetchall()
+        if len(rows) > 0:
+            return True
+        else:
+            return False
+
+    def delete(self, table, **kwargs):
+        query = "DELETE FROM %s " % table
+        variable = ""
+        for i in kwargs:
+            variable += (" " + str(i) + " = '" + str(kwargs[i] + "', "))
+        query = ("%s where %s;" % (query, variable[:-2]))
+        self.cur.execute(query)
+        self.conn.commit()
 
 
 
@@ -45,43 +79,7 @@ class DataAccessor():
 
 
 
-    def select(self,query):
-        self.cur.execute(query)
-        return self.cur.fetchall()
 
-    def update(self,query):
-        self.cur.execute(query)
-        self.conn.commit()
-
-
-    def insert(self,table,**kwargs):
-        query = "INSERT INTO %s" % table
-        variable = ""
-        values = ""
-        for i in kwargs:
-            variable+=(" " + str(i) + " , ")
-            values+=("'" +str( kwargs[i]) + "', ")
-        query = ("%s (%s) values (%s)" % (query, variable[:-2], values[:-2]))
-        self.cur.execute(query)
-        self.conn.commit()
-
-
-    def is_exist_user(self,username):
-        self.cur.execute("select * FROM users where username = '%s';" % username.lower())
-        rows = self.cur.fetchall()
-        if len(rows)>0:
-            return True
-        else:
-            return False
-
-    def delete(self,table, **kwargs):
-        query = "DELETE FROM %s " % table
-        variable = ""
-        for i in kwargs:
-            variable += (" " + str(i) + " = '" + str(kwargs[i]+"', " ))
-        query = ("%s where %s;" % (query, variable[:-2]))
-        self.cur.execute(query)
-        self.conn.commit()
 
 
     initialquery = """DROP TABLE sessions, users, posts, likes;

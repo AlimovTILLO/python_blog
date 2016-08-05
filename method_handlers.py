@@ -9,7 +9,8 @@ from http.server import HTTPStatus
 from git_template import template
 
 def handle_index(request):
-    if is_authenticate(request) == -1:
+    user_id = is_authenticate(request)
+    if user_id == -1:
         f = open(settings.TEMPLATES_DIR + 'index.html')
         read = f.read()
         html = template.Template(read).render(auth = False)
@@ -17,8 +18,31 @@ def handle_index(request):
         f = open(settings.TEMPLATES_DIR + 'profile.html')
         read = f.read()
         data = get_userdata(request)
-        html = template.Template(read).render(name = data[0][1], lname = data[0][2], username  = data[0][3])
+        posts = DataAccess.DataAccessor().select("select title, post from posts where user_id = '%s'" % user_id)
+        html = template.Template(read).render(name = data[0][1], lname = data[0][2], username  = data[0][3], posts = posts)
     request.send_response(HTTPStatus.OK)
+    request.send_header('Content-Type', 'text/html')
+    request.end_headers()
+    request.wfile.write(str.encode(html))
+    # a = DataAccess.DataAccessor()
+    # a.selectExample()
+    return request
+
+def post(request):
+    user_id = is_authenticate(request)
+    if  user_id == -1:
+        f = open(settings.TEMPLATES_DIR + 'index.html')
+        read = f.read()
+        html = template.Template(read).render(auth = False)
+    else:
+        f = open(settings.TEMPLATES_DIR + 'profile.html')
+        read = f.read()
+        data = get_userdata(request)
+        posts = DataAccess.DataAccessor().select("select * from posts where user_id = '%s'" % user_id)
+        html = template.Template(read).render(name = data[0][1], lname = data[0][2], username  = data[0][3], posts = posts)
+        data = return_value_from_post(request)
+        DataAccess.DataAccessor().insert('posts', user_id = user_id, title = data['title'], post = data['text'] )
+    redirect(request, '/')
     request.send_header('Content-Type', 'text/html')
     request.end_headers()
     request.wfile.write(str.encode(html))
