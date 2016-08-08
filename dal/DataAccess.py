@@ -52,10 +52,6 @@ class DataAccessor():
         query = ("%s where %s;" % (query, variable[:-2]))
         self.cur.execute(query)
         self.conn.commit()
-
-
-
-
     #*************************************
     def creteable(self):
         self.cur.execute(self.initialquery)
@@ -102,7 +98,9 @@ CREATE TABLE posts(
 id SERIAL PRIMARY KEY,
 user_id integer REFERENCES users (id),
 title VARCHAR(200),
-post TEXT
+post TEXT,
+createDate timestamp,
+editDate  timestamp
 );
 
 

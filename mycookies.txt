@@ -1,2 +1,0 @@
-#LWP-Cookies-2.0
-Set-Cookie3: fr="0EgOFfJPVKFsQqqLQ..BXoYKm.b0.AAA.0.0.BXoYKo.AWU-BlqL"; path="/"; domain=".facebook.com"; path_spec; domain_dot; expires="2016-11-01 05:35:36Z"; httponly=None; version=0

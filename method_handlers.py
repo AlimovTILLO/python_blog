@@ -8,6 +8,7 @@ from template_engine.template import Template
 from http.server import HTTPStatus
 from git_template import template
 
+
 def handle_index(request):
     user_id = is_authenticate(request)
     if user_id == -1:
@@ -40,8 +41,8 @@ def post(request):
         data = get_userdata(request)
         posts = DataAccess.DataAccessor().select("select * from posts where user_id = '%s'" % user_id)
         html = template.Template(read).render(name = data[0][1], lname = data[0][2], username  = data[0][3], posts = posts)
-        data = return_value_from_post(request)
-        DataAccess.DataAccessor().insert('posts', user_id = user_id, title = data['title'], post = data['text'] )
+        data = get_value_from_post(request)
+        DataAccess.DataAccessor().insert('posts', user_id = user_id, title = data['title'], post = data['file'] )
     redirect(request, '/')
     request.send_header('Content-Type', 'text/html')
     request.end_headers()
@@ -69,14 +70,20 @@ def login(request):
 def login_post(request):
     request.send_response(HTTPStatus.OK)
     request.send_header('Content-Type', 'text/html')
-    a = return_value_from_post(request)
+    a = get_value_from_post(request)
     f = open(settings.TEMPLATES_DIR + 'login.html')
     read = f.read()
     user_id = check_user(a['username'],a['password'])
     if user_id ==-1:
-        html = template.Template(read).render(msg="The password you've ntered is incorrect", auth = False)
+        html = template.Template(read).render(
+            msg="The password you've entered is incorrect",
+            auth = False
+        )
     else:
-        html = template.Template(read).render(msg="Congrats yo logged in", auth = True)
+        html = template.Template(read).render(
+            msg="Congrats yo logged in",
+            auth = True
+        )
         request.send_header('Set-Cookie', 'session=%s;path=/;' % authorize(a['username']))
     request.end_headers()
     request.wfile.write(str.encode(html))
@@ -98,7 +105,7 @@ def register(request):
 
 def reg_post(request):
     request.send_response(HTTPStatus.OK)
-    values = return_value_from_post(request)
+    values = get_value_from_post(request)
     a = DataAccess.DataAccessor()
     if a.is_exist_user(values['username']):
         txt = 'Already exist'
@@ -143,6 +150,7 @@ def handle_404(request):
     request.end_headers()
     return request
 
+
 def resetDB(request):
     a = DataAccess.DataAccessor()
     a.creteable()
@@ -152,7 +160,8 @@ def resetDB(request):
     request.wfile.write(str.encode('Data base updated'))
     return request
 
-def return_value_from_post(request):
+
+def get_value_from_post(request):
     logging.debug('POST %s' % (request.path))
     ctype, pdict = cgi.parse_header(request.headers['content-type'])
     if ctype == 'multipart/form-data':
@@ -177,6 +186,7 @@ def return_value_from_post(request):
         res[a] = b
     return res
 
+
 def generate_session():
     import random
     a = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
@@ -184,6 +194,7 @@ def generate_session():
     for i in range(90):
         res += random.choice(a)
     return res
+
 
 def is_authenticate(request):
     cook = get_cookies(request)
@@ -197,13 +208,20 @@ def is_authenticate(request):
     else:
         return -1
 
+
 def get_cookies(request):
+    """
+    return cookies from request
+    :param request:
+    :return:
+    """
     res = {}
     cookie = (request.headers.get_all('Cookie', failobj={}))
     if len(cookie)>0:
         for i in cookie[0].split(';'):
             res[(i.strip().split('='))[0]]= i.strip().split('=')[1]
     return res
+
 
 def get_id_by_username(username):
     #query = "select id from users order by id desc limit 1;"
@@ -215,11 +233,12 @@ def get_id_by_username(username):
     else:
         return -1
 
+
 def check_user(username, password):
     """
     :param username:
     :param password:
-    :return: user_id
+    :return: if exist return user_id else -1
     """
     a = DataAccess.DataAccessor()
     rows = a.select("select * from users where username='%s' and password='%s';" % (username, password))
@@ -228,13 +247,16 @@ def check_user(username, password):
     else:
         return -1
 
+
 def redirect(request, path):
     request.send_response(HTTPStatus.SEE_OTHER)
     request.send_header('Location', path)
 
+
 def remove_session(session):
     a = DataAccess.DataAccessor()
     a.delete("sessions", session = session)
+
 
 def authorize(username):
     a = DataAccess.DataAccessor()
@@ -242,7 +264,55 @@ def authorize(username):
     a.insert("sessions", id_user = get_id_by_username(username), session = session)
     return session
 
+
 def get_userdata(request):
     a = DataAccess.DataAccessor()
     return a.select("select * from users where id = '%s'" % is_authenticate(request))
+
+
+def load_benary(file):
+    with open(file, 'rb') as file:
+        return file.read()
+
+
+
+def return_static(request):
+    path = request.path
+    try:
+        sendReply = False
+        if path.endswith(".html"):
+            mimetype = 'text/html'
+            sendReply = True
+        if path.endswith(".jpg"):
+            mimetype = 'image/jpg'
+            sendReply = True
+        if path.endswith(".gif"):
+            mimetype = 'image/gif'
+            sendReply = True
+        if path.endswith(".png"):
+            mimetype = 'image/png'
+            sendReply = True
+        if path.endswith(".js"):
+            mimetype = 'application/javascript'
+            sendReply = True
+        if path.endswith(".css"):
+            mimetype = 'text/css'
+            sendReply = True
+        if sendReply:
+            # Open the static file requested and send it
+            request.send_response(200)
+            request.send_header('Content-type', mimetype)
+            if path.endswith('.jpg')or path.endswith('.jpeg') or path.endswith('.gif') or path.endswith('.png'):
+                read = load_benary(settings.STATIC_DIR + request.path)
+                request.wfile.write(bytes(read))
+            else:
+                f = open(settings.STATIC_DIR + request.path)
+                read = f.read()
+                request.end_headers()
+                request.wfile.write(bytes(read, 'utf-8'))
+                f.close()
+            return
+    except IOError:
+        request.send_error(404, 'File Not Found: %s' % request.path)
+
 
