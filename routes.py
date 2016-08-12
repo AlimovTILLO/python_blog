@@ -11,6 +11,8 @@ routes = [
     Route(HTTP_METHODS.GET, '/login/', method_handlers.login),
     Route(HTTP_METHODS.POST, '/login/', method_handlers.login_post),
     Route(HTTP_METHODS.POST, '/posts/', method_handlers.posts),
+    Route(HTTP_METHODS.POST, '/update/\d+/', method_handlers.update),
+    Route(HTTP_METHODS.GET, '/delete/\d+/', method_handlers.delete),
     Route(HTTP_METHODS.GET, '/post/\d+/', method_handlers.post),
     Route(HTTP_METHODS.GET, '/edit/\d+/', method_handlers.edit),
     Route(HTTP_METHODS.GET, '/', method_handlers.handle_index)

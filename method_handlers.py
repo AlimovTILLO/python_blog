@@ -32,6 +32,25 @@ def handle_index(request):
     return request
 
 
+def admin(request):
+    user_id = is_authenticate(request)
+    if user_id == -1:
+        f = open(settings.TEMPLATES_DIR + 'index.html')
+        read = f.read()
+        html = template.Template(read).render(auth=False)
+    else:
+        f = open(settings.TEMPLATES_DIR + 'admin.html')
+        read = f.read()
+        data = get_userdata(request)
+        posts = DataAccess.DataAccessor().select("select title, post from posts where user_id = '%s'" % user_id)
+        html = template.Template(read).render(name=data[0][1], lname=data[0][2], username=data[0][3], posts=posts)
+    request.send_response(HTTPStatus.OK)
+    request.send_header('Content-Type', 'text/html')
+    request.end_headers()
+    request.wfile.write(str.encode(html))
+    return request
+
+
 def posts(request):
     user_id = is_authenticate(request)
     if user_id == -1:
@@ -44,29 +63,10 @@ def posts(request):
         data = get_userdata(request)
         posts = DataAccess.DataAccessor().select("select * from posts where user_id = '%s'" % user_id)
         html = template.Template(read).render(name=data[0][1], lname=data[0][2], username=data[0][3], posts=posts)
-    redirect(request, '/')
-    request.send_header('Content-Type', 'text/html')
-    request.end_headers()
-    request.wfile.write(str.encode(html))
-    return request
 
-
-def admin(request):
-    print("111111")
-    user_id = is_authenticate(request)
-    if user_id == -1:
-        f = open(settings.TEMPLATES_DIR + 'index.html')
-        read = f.read()
-        html = template.Template(read).render(auth=False)
-    else:
-        print("2222222222")
-        f = open(settings.TEMPLATES_DIR + 'admin.html')
-        read = f.read()
-        data = get_userdata(request)
-        admin = DataAccess.DataAccessor().select("select title, post from posts where user_id = '%s'" % user_id)
-        html = template.Template(read).render(name=data[0][1], lname=data[0][2], username=data[0][3], admin=admin)
-    print("55555")
-    request.send_response(HTTPStatus.OK)
+        data = return_value_from_post(request)
+        DataAccess.DataAccessor().insert('posts', user_id=user_id, title=data['title'], post=data['text'])
+    redirect(request, '/admin/')
     request.send_header('Content-Type', 'text/html')
     request.end_headers()
     request.wfile.write(str.encode(html))
@@ -74,7 +74,6 @@ def admin(request):
 
 
 def post(request):
-    print("req path =", request.path)
     post_id = (request.path.split('/'))[-2]
     user_id = is_authenticate(request)
     if user_id == -1:
@@ -100,7 +99,7 @@ def post(request):
                 post[j] = list(post[j])
                 if post[j][1] == data[i][0]:
                     iduser = data[i][3]
-        html = template.Template(read).render(post_id=post, iduser=iduser, idtitle=post[0][2],
+        html = template.Template(read).render(post_id=post_id, iduser=iduser, idtitle=post[0][2],
                                               idtext=post[0][3])
     request.send_response(HTTPStatus.OK)
     request.send_header('Content-Type', 'text/html')
@@ -110,7 +109,6 @@ def post(request):
 
 
 def edit(request):
-    print("req path =", request.path)
     post_id = (request.path.split('/'))[-2]
     user_id = is_authenticate(request)
     if user_id == -1:
@@ -124,12 +122,57 @@ def edit(request):
         data = get_userdata(request)
         for i in range(len(post)):
             post[i] = list(post[i])
-        print(user_id)
         if user_id == post[0][1]:
             iduser = data[0][3]
-        html = template.Template(read).render(post_id=post, iduser=iduser, idtitle=post[0][2],
+        html = template.Template(read).render(post_id=post_id, iduser=iduser, idtitle=post[0][2],
                                               idtext=post[0][3])
+
     request.send_response(HTTPStatus.OK)
+    request.send_header('Content-Type', 'text/html')
+    request.end_headers()
+    request.wfile.write(str.encode(html))
+    return request
+
+
+def update(request):
+    post_id = (request.path.split('/'))[-2]
+    user_id = is_authenticate(request)
+    if user_id == -1:
+        f = open(settings.TEMPLATES_DIR + 'index.html')
+        read = f.read()
+        html = template.Template(read).render(auth=False)
+    else:
+        # f = open(settings.TEMPLATES_DIR + 'edit.html')
+        # read = f.read()
+        # post = DataAccess.DataAccessor().select("select * from posts where user_id = '%s'" % user_id)
+        # data = get_userdata(request)
+        # for i in range(len(post)):
+        #     post[i] = list(post[i])
+        # if user_id == post[0][1]:
+        #     iduser = data[0][3]
+        # html = template.Template(read).render(post_id=post_id, iduser=iduser, idtitle=post[0][2],
+        #                                       idtext=post[0][3])
+        data = return_value_from_post(request)
+        DataAccess.DataAccessor().update('posts', title=data['title'], post=data['text'], id=post_id)
+    redirect(request, '/admin/')
+    request.send_header('Content-Type', 'text/html')
+    request.end_headers()
+    request.wfile.write(str.encode(html))
+    return request
+
+
+def delete(request):
+
+    post_id = (request.path.split('/'))[-2]
+    print(post_id)
+    user_id = is_authenticate(request)
+    if user_id == -1:
+        f = open(settings.TEMPLATES_DIR + 'index.html')
+        read = f.read()
+        html = template.Template(read).render(auth=False)
+    else:
+        DataAccess.DataAccessor().delete('posts', id=post_id)
+    redirect(request, '/')
     request.send_header('Content-Type', 'text/html')
     request.end_headers()
     request.wfile.write(str.encode(html))
