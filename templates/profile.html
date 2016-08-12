@@ -4,11 +4,42 @@
     <meta charset="UTF-8">
     <title>Title</title>
     <link rel="stylesheet" href="css/style.css">
-    <script src="js/profile.js"></script>
+    <style>
+        .content{
+            width: 100%;
+        }
+        .userblock{
+            float: left;
+            display: inline-block;
+            width: 20%
+
+        }
+        .posts{
+            border: 3px solid red;
+            margin-bottom: 20px;
+        }
+        .maincontent{
+            float: left;
+            display: inline-block;
+            background-color: #ccc;
+            width: 70%;
+
+        }
+        .clearfix:after {
+             content: ".";
+             display: block;
+             height: 0;
+             clear: both;
+             visibility: hidden;
+        }
+        .clearfix {
+            display: inline-block;
+        }
+    </style>
 </head>
 <body>
-<img src="images/images.jpg" alt="">
 <p><a href="logout/">Выйти</a></p>
+<p><a href="/admin/">Админка</a></p>
 <div class="content clearfix">
     <div class="userblock">
         <p>{{ name }}</p>
@@ -16,18 +47,11 @@
         <p>{{ username }}</p>
     </div>
     <div class="maincontent">
-        <form action="/post/" method="POST">
-            <p>Title<input type="text" name="title"></p>
-            <p>text <textarea name="text" id="" cols="30" rows="10"></textarea></p>
-             <input type="file" name="file" id="file" multiple="true" />
-            <p><input type="submit"></p>
-        </form>
         <hr>
-        <h2>POSTS</h2>
         {% each posts %}
             <div class="posts">
                 {% each it %}
-                    <span>{{ it }}</span>
+                        <a href="post/4/"><span>{{ it }}</span></a>
                 {% end %}
             </div>
         {% end %}

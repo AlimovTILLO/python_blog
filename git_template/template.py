@@ -36,7 +36,6 @@ class TemplateError(Exception):
 
 
 class TemplateContextError(TemplateError):
-
     def __init__(self, context_var):
         self.context_var = context_var
 
@@ -45,7 +44,6 @@ class TemplateContextError(TemplateError):
 
 
 class TemplateSyntaxError(TemplateError):
-
     def __init__(self, error_syntax):
         self.error_syntax = error_syntax
 
@@ -115,14 +113,17 @@ class _Node(object):
     def render_children(self, context, children=None):
         if children is None:
             children = self.children
+
         def render_child(child):
             child_html = child.render(context)
             return '' if not child_html else str(child_html)
+
         return ''.join(map(render_child, children))
 
 
 class _ScopableNode(_Node):
     creates_scope = True
+
 
 class _Root(_Node):
     def render(self, context):
@@ -147,8 +148,10 @@ class _Each(_ScopableNode):
 
     def render(self, context):
         items = self.it[1] if self.it[0] == 'literal' else resolve(self.it[1], context)
+
         def render_item(item):
             return self.render_children({'..': context, 'it': item})
+
         return ''.join(map(render_item, items))
 
 
@@ -174,7 +177,7 @@ class _If(_ScopableNode):
             exec_if_branch = operator.truth(lhs)
         if_branch, else_branch = self.split_children()
         return self.render_children(context,
-            self.if_branch if exec_if_branch else self.else_branch)
+                                    self.if_branch if exec_if_branch else self.else_branch)
 
     def resolve_side(self, side, context):
         return side[1] if side[0] == 'literal' else resolve(side[1], context)

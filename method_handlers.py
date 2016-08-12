@@ -2,6 +2,9 @@ import cgi, cgitb
 import logging
 from os import curdir
 from os import environ
+
+import re
+
 import settings
 from dal import DataAccess
 from template_engine.template import Template
@@ -14,55 +17,136 @@ def handle_index(request):
     if user_id == -1:
         f = open(settings.TEMPLATES_DIR + 'index.html')
         read = f.read()
-        html = template.Template(read).render(auth = False)
+        html = template.Template(read).render(auth=False)
     else:
         f = open(settings.TEMPLATES_DIR + 'profile.html')
         read = f.read()
         data = get_userdata(request)
-        posts = DataAccess.DataAccessor().select("select title, post from posts where user_id = '%s'" % user_id)
-        html = template.Template(read).render(name = data[0][1], lname = data[0][2], username  = data[0][3], posts = posts)
+        posts = DataAccess.DataAccessor().select("select * from posts")
+        html = template.Template(read).render(name=data[0][1], lname=data[0][2], username=data[0][3], posts=posts)
+
     request.send_response(HTTPStatus.OK)
     request.send_header('Content-Type', 'text/html')
     request.end_headers()
     request.wfile.write(str.encode(html))
-    # a = DataAccess.DataAccessor()
-    # a.selectExample()
     return request
 
-def post(request):
+
+def posts(request):
     user_id = is_authenticate(request)
-    if  user_id == -1:
+    if user_id == -1:
         f = open(settings.TEMPLATES_DIR + 'index.html')
         read = f.read()
-        html = template.Template(read).render(auth = False)
+        html = template.Template(read).render(auth=False)
     else:
         f = open(settings.TEMPLATES_DIR + 'profile.html')
         read = f.read()
         data = get_userdata(request)
         posts = DataAccess.DataAccessor().select("select * from posts where user_id = '%s'" % user_id)
-        html = template.Template(read).render(name = data[0][1], lname = data[0][2], username  = data[0][3], posts = posts)
-        data = get_value_from_post(request)
-        DataAccess.DataAccessor().insert('posts', user_id = user_id, title = data['title'], post = data['file'] )
+        html = template.Template(read).render(name=data[0][1], lname=data[0][2], username=data[0][3], posts=posts)
     redirect(request, '/')
     request.send_header('Content-Type', 'text/html')
     request.end_headers()
     request.wfile.write(str.encode(html))
-    # a = DataAccess.DataAccessor()
-    # a.selectExample()
+    return request
+
+
+def admin(request):
+    print("111111")
+    user_id = is_authenticate(request)
+    if user_id == -1:
+        f = open(settings.TEMPLATES_DIR + 'index.html')
+        read = f.read()
+        html = template.Template(read).render(auth=False)
+    else:
+        print("2222222222")
+        f = open(settings.TEMPLATES_DIR + 'admin.html')
+        read = f.read()
+        data = get_userdata(request)
+        admin = DataAccess.DataAccessor().select("select title, post from posts where user_id = '%s'" % user_id)
+        html = template.Template(read).render(name=data[0][1], lname=data[0][2], username=data[0][3], admin=admin)
+    print("55555")
+    request.send_response(HTTPStatus.OK)
+    request.send_header('Content-Type', 'text/html')
+    request.end_headers()
+    request.wfile.write(str.encode(html))
+    return request
+
+
+def post(request):
+    print("req path =", request.path)
+    post_id = (request.path.split('/'))[-2]
+    user_id = is_authenticate(request)
+    if user_id == -1:
+        f = open(settings.TEMPLATES_DIR + 'index.html')
+        read = f.read()
+        html = template.Template(read).render(auth=False)
+    else:
+        f = open(settings.TEMPLATES_DIR + 'post.html')
+        read = f.read()
+        post = DataAccess.DataAccessor().select("SELECT * FROM posts WHERE id=%s" % post_id)
+        # post = DataAccess.DataAccessor().selectone("SELECT * FROM posts WHERE id=%(id)s", {'id': post_id})
+        # DataAccess.DataAccessor().execute("SELECT * FROM posts WHERE id=%(id)s", {'id': post_id})
+        # DataAccess.DataAccessor().fetchone()
+        # html = template.Template(read).render(post_id=post)
+        # data = get_postdata(request)
+        data = DataAccess.DataAccessor().select("SELECT * FROM users")
+        # for i in range(len(post)):
+        #     post[i] = list(post[i])
+        #     iduser = data[i][3]
+        for i in range(len(data)):
+            data[i] = list(data[i])
+            for j in range(len(post)):
+                post[j] = list(post[j])
+                if post[j][1] == data[i][0]:
+                    iduser = data[i][3]
+        html = template.Template(read).render(post_id=post, iduser=iduser, idtitle=post[0][2],
+                                              idtext=post[0][3])
+    request.send_response(HTTPStatus.OK)
+    request.send_header('Content-Type', 'text/html')
+    request.end_headers()
+    request.wfile.write(str.encode(html))
+    return request
+
+
+def edit(request):
+    print("req path =", request.path)
+    post_id = (request.path.split('/'))[-2]
+    user_id = is_authenticate(request)
+    if user_id == -1:
+        f = open(settings.TEMPLATES_DIR + 'index.html')
+        read = f.read()
+        html = template.Template(read).render(auth=False)
+    else:
+        f = open(settings.TEMPLATES_DIR + 'edit.html')
+        read = f.read()
+        post = DataAccess.DataAccessor().select("SELECT * FROM posts WHERE id=%s" % post_id)
+        data = get_userdata(request)
+        for i in range(len(post)):
+            post[i] = list(post[i])
+        print(user_id)
+        if user_id == post[0][1]:
+            iduser = data[0][3]
+        html = template.Template(read).render(post_id=post, iduser=iduser, idtitle=post[0][2],
+                                              idtext=post[0][3])
+    request.send_response(HTTPStatus.OK)
+    request.send_header('Content-Type', 'text/html')
+    request.end_headers()
+    request.wfile.write(str.encode(html))
     return request
 
 
 def login(request):
-    if is_authenticate(request)==-1:
+    if is_authenticate(request) == -1:
         f = open(settings.TEMPLATES_DIR + 'login.html')
         read = f.read()
-        html = template.Template(read).render(msg = 'Enter login and password', auth = False)
+        html = template.Template(read).render(msg='Enter login and password', auth=False)
         request.send_response(HTTPStatus.OK)
         request.send_header('Content-Type', 'text/html')
         request.end_headers()
         request.wfile.write(str.encode(html))
     else:
-        redirect(request,'/')
+        redirect(request, '/')
         request.end_headers()
     return request
 
@@ -70,20 +154,14 @@ def login(request):
 def login_post(request):
     request.send_response(HTTPStatus.OK)
     request.send_header('Content-Type', 'text/html')
-    a = get_value_from_post(request)
+    a = return_value_from_post(request)
     f = open(settings.TEMPLATES_DIR + 'login.html')
     read = f.read()
-    user_id = check_user(a['username'],a['password'])
-    if user_id ==-1:
-        html = template.Template(read).render(
-            msg="The password you've entered is incorrect",
-            auth = False
-        )
+    user_id = check_user(a['username'], a['password'])
+    if user_id == -1:
+        html = template.Template(read).render(msg="The password you've ntered is incorrect", auth=False)
     else:
-        html = template.Template(read).render(
-            msg="Congrats yo logged in",
-            auth = True
-        )
+        html = template.Template(read).render(msg="Congrats yo logged in", auth=True)
         request.send_header('Set-Cookie', 'session=%s;path=/;' % authorize(a['username']))
     request.end_headers()
     request.wfile.write(str.encode(html))
@@ -105,25 +183,25 @@ def register(request):
 
 def reg_post(request):
     request.send_response(HTTPStatus.OK)
-    values = get_value_from_post(request)
+    values = return_value_from_post(request)
     a = DataAccess.DataAccessor()
     if a.is_exist_user(values['username']):
         txt = 'Already exist'
     else:
         a.insert(
             'users',
-            name = values['name'],
-            lname = values['lname'],
-            username = str(values['username']).lower(),
-            password = values['password'],
-            active = True
+            name=values['name'],
+            lname=values['lname'],
+            username=str(values['username']).lower(),
+            password=values['password'],
+            active=True
         )
         session = generate_session()
         request.send_header('Set-Cookie', 'session=%s;path=/;' % session)
         a.insert(
             'sessions',
-            id_user = str(get_id_by_username(values['username'])).lower(),
-            session = session
+            id_user=str(get_id_by_username(values['username'])).lower(),
+            session=session
         )
         txt = 'Created'
     context = {'status': txt}
@@ -133,8 +211,9 @@ def reg_post(request):
     request.wfile.write(str.encode(html))
     return request
 
+
 def logout(request):
-    if is_authenticate(request)!=-1:
+    if is_authenticate(request) != -1:
         cook = get_cookies(request)
         if "session" in cook:
             remove_session(cook['session'])
@@ -143,6 +222,7 @@ def logout(request):
     request.send_header('Location', 'http://localhost:8080/')
     request.end_headers()
     return request
+
 
 def handle_404(request):
     request.send_response(HTTPStatus.NOT_FOUND)
@@ -161,7 +241,7 @@ def resetDB(request):
     return request
 
 
-def get_value_from_post(request):
+def return_value_from_post(request):
     logging.debug('POST %s' % (request.path))
     ctype, pdict = cgi.parse_header(request.headers['content-type'])
     if ctype == 'multipart/form-data':
@@ -182,7 +262,7 @@ def get_value_from_post(request):
         i += 1
         a = key.decode("utf-8")
         b = postvars[key][0].decode("utf-8")
-        #print('ARG[%d] %s=%s' % (i, key, postvars[key]))
+        # print('ARG[%d] %s=%s' % (i, key, postvars[key]))
         res[a] = b
     return res
 
@@ -201,7 +281,7 @@ def is_authenticate(request):
     if 'session' in cook:
         a = DataAccess.DataAccessor()
         rows = a.select("select id_user from sessions where session='%s';" % cook['session'])
-        if len(rows)!=0:
+        if len(rows) != 0:
             return rows[0][0]
         else:
             return -1
@@ -210,22 +290,17 @@ def is_authenticate(request):
 
 
 def get_cookies(request):
-    """
-    return cookies from request
-    :param request:
-    :return:
-    """
     res = {}
     cookie = (request.headers.get_all('Cookie', failobj={}))
-    if len(cookie)>0:
+    if len(cookie) > 0:
         for i in cookie[0].split(';'):
-            res[(i.strip().split('='))[0]]= i.strip().split('=')[1]
+            res[(i.strip().split('='))[0]] = i.strip().split('=')[1]
     return res
 
 
 def get_id_by_username(username):
-    #query = "select id from users order by id desc limit 1;"
-    query = "select id from users where username='%s';"%username
+    # query = "select id from users order by id desc limit 1;"
+    query = "select id from users where username='%s';" % username
     a = DataAccess.DataAccessor()
     rows = a.select(query)
     if len(rows) > 0:
@@ -238,11 +313,11 @@ def check_user(username, password):
     """
     :param username:
     :param password:
-    :return: if exist return user_id else -1
+    :return: user_id
     """
     a = DataAccess.DataAccessor()
     rows = a.select("select * from users where username='%s' and password='%s';" % (username, password))
-    if len(rows)>0:
+    if len(rows) > 0:
         return rows[0][0]
     else:
         return -1
@@ -255,13 +330,13 @@ def redirect(request, path):
 
 def remove_session(session):
     a = DataAccess.DataAccessor()
-    a.delete("sessions", session = session)
+    a.delete("sessions", session=session)
 
 
 def authorize(username):
     a = DataAccess.DataAccessor()
     session = generate_session()
-    a.insert("sessions", id_user = get_id_by_username(username), session = session)
+    a.insert("sessions", id_user=get_id_by_username(username), session=session)
     return session
 
 
@@ -270,49 +345,6 @@ def get_userdata(request):
     return a.select("select * from users where id = '%s'" % is_authenticate(request))
 
 
-def load_benary(file):
-    with open(file, 'rb') as file:
-        return file.read()
-
-
-
-def return_static(request):
-    path = request.path
-    try:
-        sendReply = False
-        if path.endswith(".html"):
-            mimetype = 'text/html'
-            sendReply = True
-        if path.endswith(".jpg"):
-            mimetype = 'image/jpg'
-            sendReply = True
-        if path.endswith(".gif"):
-            mimetype = 'image/gif'
-            sendReply = True
-        if path.endswith(".png"):
-            mimetype = 'image/png'
-            sendReply = True
-        if path.endswith(".js"):
-            mimetype = 'application/javascript'
-            sendReply = True
-        if path.endswith(".css"):
-            mimetype = 'text/css'
-            sendReply = True
-        if sendReply:
-            # Open the static file requested and send it
-            request.send_response(200)
-            request.send_header('Content-type', mimetype)
-            if path.endswith('.jpg')or path.endswith('.jpeg') or path.endswith('.gif') or path.endswith('.png'):
-                read = load_benary(settings.STATIC_DIR + request.path)
-                request.wfile.write(bytes(read))
-            else:
-                f = open(settings.STATIC_DIR + request.path)
-                read = f.read()
-                request.end_headers()
-                request.wfile.write(bytes(read, 'utf-8'))
-                f.close()
-            return
-    except IOError:
-        request.send_error(404, 'File Not Found: %s' % request.path)
-
-
+def get_postdata(request):
+    a = DataAccess.DataAccessor()
+    return a.select("select * from posts where user_id=%(user_id)s", {'user_id': is_authenticate(request)})

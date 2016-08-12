@@ -7,7 +7,6 @@ from routing import Router
 
 
 class Handler(BaseHTTPRequestHandler):
-
     def __init__(self, request, client_address, server):
         self.router = Router()
         self.router.register_routes(routes)

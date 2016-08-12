@@ -7,7 +7,7 @@ ADDRESS = (settings.HOSTNAME, settings.PORT)
 
 server = HTTPServer(ADDRESS, Handler)
 
-print("Started at {0}:{1}".format(*ADDRESS))
+print("Started at http://{0}:{1}".format(*ADDRESS))
 
 
 def main():
@@ -15,6 +15,7 @@ def main():
         server.serve_forever()
     except KeyboardInterrupt:
         server.server_close()
+
 
 if __name__ == '__main__':
     main()

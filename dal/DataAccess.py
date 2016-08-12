@@ -1,6 +1,7 @@
 import settings
 import psycopg2
 
+
 class DataAccessor():
     conn = None
     cur = None
@@ -52,33 +53,30 @@ class DataAccessor():
         query = ("%s where %s;" % (query, variable[:-2]))
         self.cur.execute(query)
         self.conn.commit()
-    #*************************************
+
+    # *************************************
     def creteable(self):
         self.cur.execute(self.initialquery)
         self.conn.commit()
+
     def selectExample(self):
         self.cur.execute("""select * FROM users;""")
         rows = self.cur.fetchall()
         print('SELECT * ', len(rows))
         for row in rows:
-            print ( "id = ", row[0])
-            print ( "name = ", row[1])
-            print ( "lname = ", row[2])
-            print ( "username = ", row[3])
-            print ( "password = ", row[4])
-            print ( "active = ", row[5])
+            print("id = ", row[0])
+            print("name = ", row[1])
+            print("lname = ", row[2])
+            print("username = ", row[3])
+            print("password = ", row[4])
+            print("active = ", row[5])
             self.cur.execute("select session FROM sessions where id_user = '%s';" % row[0])
             ro = self.cur.fetchall()
             for j in ro:
-                print("    cookie =",j[0])
+                print("    cookie =", j[0])
             print("%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
 
-
-
-
-
-
-    initialquery = """DROP TABLE sessions, users, posts, likes;
+    initialquery = """
 CREATE TABLE users(
 id SERIAL PRIMARY KEY,
 name VARCHAR(50),
@@ -98,9 +96,7 @@ CREATE TABLE posts(
 id SERIAL PRIMARY KEY,
 user_id integer REFERENCES users (id),
 title VARCHAR(200),
-post TEXT,
-createDate timestamp,
-editDate  timestamp
+post TEXT
 );
 
 
@@ -113,15 +109,3 @@ post_id integer REFERENCES posts (id)
 
 
     """
-
-
-
-
-
-
-
-
-
-
-
-

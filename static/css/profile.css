@@ -1,35 +1,23 @@
 .content{
-            width: 100%;
-        }
-        .userblock{
-            float: left;
-            display: inline-block;
-            width: 20%
 
-        }
-        .posts{
-            border: 3px solid red;
-            margin-bottom: 20px;
-        }
-        .posts span:first-child{
-            display: block;
-            font-size: 30px;
-            padding: 10px 20px;
-        }
-        .maincontent{
-            float: left;
-            display: inline-block;
-            background-color: #ccc;
-            width: 70%;
-
-        }
-        .clearfix:after {
-             content: ".";
-             display: block;
-             height: 0;
-             clear: both;
-             visibility: hidden;
-        }
-        .clearfix {
-            display: inline-block;
-        }
+}
+.userblock{
+    float: left;
+    display: inline-block;
+    width: 20%
+}
+.maincontent{
+    float: left;
+    display: inline-block;
+    width: 70%
+}
+.clearfix:after {
+     content: ".";
+     display: block;
+     height: 0;
+     clear: both;
+     visibility: hidden;
+}
+.clearfix {
+    display: inline-block;
+}

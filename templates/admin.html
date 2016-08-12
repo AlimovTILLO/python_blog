@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .content{
+            width: 100%;
+        }
+        .userblock{
+            float: left;
+            display: inline-block;
+            width: 20%
+
+        }
+        .posts{
+            border: 3px solid red;
+            margin-bottom: 20px;
+        }
+        .maincontent{
+            float: left;
+            display: inline-block;
+            background-color: #ccc;
+            width: 70%;
+
+        }
+        .clearfix:after {
+             content: ".";
+             display: block;
+             height: 0;
+             clear: both;
+             visibility: hidden;
+        }
+        .clearfix {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+<p><a href="logout/">Выйти</a></p>
+<p><a href="/">Главная</a></p>
+<div class="content clearfix">
+    <div class="userblock">
+        <p>{{ name }}</p>
+        <p>{{ lname }}</p>
+        <p>{{ username }}</p>
+    </div>
+    <div class="maincontent">
+        <form action="/posts/" method="POST">
+            <p>Title<input type="text" name="title"></p>
+            <p>text <textarea name="text" id="" cols="30" rows="10"></textarea></p>
+            <p><input type="submit"></p>
+        </form>
+        <hr>
+        {% each admin %}
+            <div class="posts">
+                {% each it %}
+                        <a href="../post/4/"><span>{{ it }}</span></a>
+                {% end %}
+            </div>
+        {% end %}
+    </div>
+</div>
+</body>
+</html>
